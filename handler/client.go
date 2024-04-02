@@ -29,6 +29,7 @@ func (c *Client) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		fmt.Println("failed to decode:", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -59,8 +60,8 @@ func (c *Client) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
 	w.Write(res)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (c *Client) List(w http.ResponseWriter, r *http.Request) {
@@ -108,10 +109,7 @@ func (c *Client) List(w http.ResponseWriter, r *http.Request) {
 func (c *Client) GetByID(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 
-	const base = 10
-	const bitSize = 64
-
-	clientID, err := strconv.ParseUint(idParam, base, bitSize)
+	clientID, err := uuid.Parse(idParam)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -146,10 +144,7 @@ func (c *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 
 	idParam := chi.URLParam(r, "id")
 
-	const base = 10
-	const bitSize = 64
-
-	clientID, err := uuid.ParseBytes(idParam)
+	clientID, err := uuid.Parse(idParam)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -180,5 +175,21 @@ func (c *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Client) DeleteByID(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Delete a client by ID")
+	idParam := chi.URLParam(r, "id")
+
+	clientID, err := uuid.Parse(idParam)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = c.Repo.DeleteByID(r.Context(), clientID)
+	if errors.Is(err, client.ErrNotExist) {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	} else if err != nil {
+		fmt.Println("failed to find by id:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

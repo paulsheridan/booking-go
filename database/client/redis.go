@@ -17,7 +17,7 @@ type RedisDatabase struct {
 }
 
 func clientIDKey(id uuid.UUID) string {
-	return fmt.Sprintf("client:%d", id)
+	return id.String()
 }
 
 func (r *RedisDatabase) Insert(ctx context.Context, client model.Client) error {
@@ -28,7 +28,12 @@ func (r *RedisDatabase) Insert(ctx context.Context, client model.Client) error {
 
 	key := clientIDKey(client.ClientID)
 
+	fmt.Println("made it before txn")
+	fmt.Println(client)
+
 	txn := r.Client.TxPipeline()
+
+	fmt.Println("Made it after txn")
 
 	res := txn.SetNX(ctx, key, string(data), 0)
 	if err := res.Err(); err != nil {
@@ -38,7 +43,7 @@ func (r *RedisDatabase) Insert(ctx context.Context, client model.Client) error {
 
 	if err := txn.SAdd(ctx, "clients", key).Err(); err != nil {
 		txn.Discard()
-		return fmt.Errorf("failed to add orders to set: %w", err)
+		return fmt.Errorf("failed to add client to set: %w", err)
 	}
 
 	if _, err := txn.Exec(ctx); err != nil {
@@ -154,4 +159,4 @@ func (r *RedisDatabase) FindAll(ctx context.Context, page FindAllPage) (FindResu
 	}, nil
 }
 
-var ErrNotExist = errors.New("order does not exist")
+var ErrNotExist = errors.New("client does not exist")
