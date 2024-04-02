@@ -27,13 +27,7 @@ func (r *RedisDatabase) Insert(ctx context.Context, client model.Client) error {
 	}
 
 	key := clientIDKey(client.ClientID)
-
-	fmt.Println("made it before txn")
-	fmt.Println(client)
-
 	txn := r.Client.TxPipeline()
-
-	fmt.Println("Made it after txn")
 
 	res := txn.SetNX(ctx, key, string(data), 0)
 	if err := res.Err(); err != nil {
@@ -90,6 +84,11 @@ func (r *RedisDatabase) DeleteByID(ctx context.Context, id uuid.UUID) error {
 		txn.Discard()
 		return fmt.Errorf("failed to remove clients set: %w", err)
 	}
+
+	if _, err := txn.Exec(ctx); err != nil {
+		return fmt.Errorf("failed to exec: %w", err)
+	}
+
 	return nil
 }
 

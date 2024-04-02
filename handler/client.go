@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
 	"github.com/paulsheridan/booking-go/database/client"
@@ -134,7 +134,7 @@ func (c *Client) GetByID(w http.ResponseWriter, r *http.Request) {
 
 func (c *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		Status string `json:"status"`
+		PhoneNumber int64 `json:"phone_number"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -159,6 +159,8 @@ func (c *Client) UpdateByID(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	theClient.PhoneNumber = body.PhoneNumber
 
 	err = c.Repo.Update(r.Context(), theClient)
 	if err != nil {
