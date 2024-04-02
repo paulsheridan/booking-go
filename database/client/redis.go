@@ -1,4 +1,4 @@
-package database
+package client
 
 import (
 	"context"
@@ -153,3 +153,5 @@ func (r *RedisDatabase) FindAll(ctx context.Context, page FindAllPage) (FindResu
 		Cursor:  cursor,
 	}, nil
 }
+
+var ErrNotExist = errors.New("order does not exist")

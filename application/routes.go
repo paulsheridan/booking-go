@@ -9,7 +9,7 @@ import (
 	"github.com/paulsheridan/booking-go/handler"
 )
 
-func loadRoutes() *chi.Mux {
+func (a *App) loadRoutes() {
 	router := chi.NewRouter()
 
 	router.Use(middleware.Logger)
@@ -20,7 +20,7 @@ func loadRoutes() *chi.Mux {
 
 	router.Route("/clients", loadClientRoutes)
 
-	return router
+	a.router = router
 }
 
 func loadClientRoutes(router chi.Router) {
